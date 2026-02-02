@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrainCircuit, Play, RotateCcw, CheckCircle2, XCircle, Trophy, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 const GRID_SIZE = 9;
 const TOTAL_TURNS = 20 + 1;
