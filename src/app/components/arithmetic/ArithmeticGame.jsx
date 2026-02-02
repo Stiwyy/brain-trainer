@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, Play, RotateCcw, XCircle, Trophy, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 const INITIAL_TIME = 10.0;
 const MIN_TIME = 1.5;

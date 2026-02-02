@@ -44,12 +44,12 @@ export const games = [
         delay: 0.4,
     },
     {
-        id: "math",
+        id: "arithmetic",
         title: "Mental Arithmetic",
         description: "Enhance numerical fluency under time pressure.",
         icon: Calculator,
         color: "from-rose-500 to-red-600",
-        href: "/math",
+        href: "/arithmetic",
         delay: 0.5,
     },
 ];
