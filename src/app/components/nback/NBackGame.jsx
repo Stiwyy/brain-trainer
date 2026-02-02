@@ -2,312 +2,335 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, Play, RotateCcw, CheckCircle2, XCircle, Trophy, Settings } from "lucide-react";
+import { BrainCircuit, Play, Volume2, Grid3x3, Trophy, CheckCircle2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-const GRID_SIZE = 9;
-const TOTAL_TURNS = 20 + 1;
-const SPEED = 2500;
+const N_FACTOR = 2;
+const TRIALS = 25;
+const BLOCKS = 3;
+const STIMULUS_DURATION = 760;
+const TOTAL_CYCLE = 2760;
 
-export default function NBackGame() {
-    const [nLevel, setNLevel] = useState(2);
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'H', 'I', 'K', 'L', 'M', 'O', 'P', 'R', 'S', 'T'];
+const POSITIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
+export default function DualNBackGame() {
     const [gameState, setGameState] = useState("idle");
-    const [sequence, setSequence] = useState([]);
-    const [currentStep, setCurrentStep] = useState(-1);
-    const [activeCell, setActiveCell] = useState(null);
+    const [currentBlock, setCurrentBlock] = useState(1);
+    const [currentTrial, setCurrentTrial] = useState(0);
 
-    const [score, setScore] = useState(0);
-    const [mistakes, setMistakes] = useState(0);
-    const [historyLog, setHistoryLog] = useState([]);
+    const [activePosition, setActivePosition] = useState(null);
+    const [activeLetter, setActiveLetter] = useState(null);
+    const [isStimulusVisible, setIsStimulusVisible] = useState(false);
 
-    const [hasClicked, setHasClicked] = useState(false);
-    const [feedback, setFeedback] = useState(null);
+    const [positionSeq, setPositionSeq] = useState([]);
+    const [audioSeq, setAudioSeq] = useState([]);
 
-    const timeoutRef = useRef(null);
+    const [response, setResponse] = useState({
+        positionClicked: false,
+        audioClicked: false
+    });
 
-    const generateSequence = (n) => {
-        const seq = [];
-        for (let i = 0; i < TOTAL_TURNS; i++) {
-            const shouldMatch = i >= n && Math.random() < 0.3;
+    const [feedback, setFeedback] = useState({ pos: null, audio: null });
 
-            if (shouldMatch) {
-                seq.push(seq[i - n]);
-            } else {
-                let rand = Math.floor(Math.random() * GRID_SIZE);
-                if (i >= n && rand === seq[i - n]) {
-                    rand = (rand + 1) % GRID_SIZE;
-                }
-                seq.push(rand);
-            }
+    const [score, setScore] = useState({
+        posHits: 0,
+        posMistakes: 0,
+        audioHits: 0,
+        audioMistakes: 0
+    });
+
+    const cycleTimer = useRef(null);
+    const hideTimer = useRef(null);
+
+    const speakLetter = (letter) => {
+        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(letter);
+
+        utterance.rate = 0.8;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        utterance.lang = "en-US";
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const generateSequences = () => {
+        const pSeq = new Array(TRIALS).fill(null);
+        const aSeq = new Array(TRIALS).fill(null);
+        const targetCount = Math.floor(TRIALS * 0.3);
+
+        for (let i = 0; i < TRIALS; i++) {
+            pSeq[i] = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
+            aSeq[i] = LETTERS[Math.floor(Math.random() * LETTERS.length)];
         }
-        return seq;
+
+        let pInjected = 0;
+        while (pInjected < targetCount) {
+            const idx = Math.floor(Math.random() * (TRIALS - N_FACTOR)) + N_FACTOR;
+            pSeq[idx] = pSeq[idx - N_FACTOR];
+            pInjected++;
+        }
+
+        let aInjected = 0;
+        while (aInjected < targetCount) {
+            const idx = Math.floor(Math.random() * (TRIALS - N_FACTOR)) + N_FACTOR;
+            aSeq[idx] = aSeq[idx - N_FACTOR];
+            aInjected++;
+        }
+
+        return { pSeq, aSeq };
     };
 
-    const startGame = () => {
-        const newSeq = generateSequence(nLevel);
-        setSequence(newSeq);
-        setScore(0);
-        setMistakes(0);
-        setCurrentStep(0);
-        setHistoryLog([]);
+    const startBlock = () => {
+        const { pSeq, aSeq } = generateSequences();
+        setPositionSeq(pSeq);
+        setAudioSeq(aSeq);
+        setCurrentTrial(0);
         setGameState("playing");
-        runTurn(0, newSeq);
-    };
-
-    const runTurn = useCallback((stepIndex, currentSeq) => {
-        setHasClicked(false);
-        setFeedback(null);
-
-        setActiveCell(currentSeq[stepIndex]);
 
         setTimeout(() => {
-            setActiveCell(null);
-        }, SPEED - 500);
+            runTrial(0, pSeq, aSeq);
+        }, 1000);
+    };
 
-        timeoutRef.current = setTimeout(() => {
-            handleTurnEnd(stepIndex, currentSeq);
-        }, SPEED);
+    const runTrial = useCallback((index, pSeq, aSeq) => {
+        setResponse({ positionClicked: false, audioClicked: false });
+        setFeedback({ pos: null, audio: null });
 
-    }, [nLevel]);
+        const pos = pSeq[index];
+        const letter = aSeq[index];
 
-    const handleTurnEnd = (stepIndex, currentSeq) => {
-        const isMatch = stepIndex >= nLevel && currentSeq[stepIndex] === currentSeq[stepIndex - nLevel];
+        setActivePosition(pos);
+        setActiveLetter(letter);
+        setIsStimulusVisible(true);
 
-        if (isMatch) {
-            setHistoryLog(prev => {
-                const didAction = prev.some(h => h.step === stepIndex);
-                if (!didAction) {
-                    setMistakes(m => m + 1);
-                    setFeedback("missed");
-                }
-                return prev;
-            });
-        }
+        speakLetter(letter);
 
-        if (stepIndex < TOTAL_TURNS - 1) {
-            setCurrentStep(stepIndex + 1);
-            runTurn(stepIndex + 1, currentSeq);
+        hideTimer.current = setTimeout(() => {
+            setIsStimulusVisible(false);
+            setActivePosition(null);
+        }, STIMULUS_DURATION);
+
+        cycleTimer.current = setTimeout(() => {
+            finishTrial(index, pSeq, aSeq);
+        }, TOTAL_CYCLE);
+
+    }, []);
+
+    const finishTrial = (index, pSeq, aSeq) => {
+        if (index < TRIALS - 1) {
+            setCurrentTrial(index + 1);
+            runTrial(index + 1, pSeq, aSeq);
         } else {
-            endGame();
+            endBlock();
         }
     };
 
-    const hasClickedRef = useRef(false);
-
-    useEffect(() => {
-        hasClickedRef.current = hasClicked;
-    }, [hasClicked]);
-
-    useEffect(() => {
-        if (gameState !== "playing") return;
-
-        const timer = setTimeout(() => {
-            const isMatch = currentStep >= nLevel && sequence[currentStep] === sequence[currentStep - nLevel];
-
-            if (isMatch && !hasClicked) {
-                setMistakes(prev => prev + 1);
-                setFeedback("missed");
-                setTimeout(() => setFeedback(null), 500);
-            }
-
-            if (currentStep < sequence.length - 1) {
-                setCurrentStep(prev => prev + 1);
-                setHasClicked(false);
-            } else {
-                endGame();
-            }
-
-        }, SPEED);
-
-        setActiveCell(sequence[currentStep]);
-        const hideTimer = setTimeout(() => setActiveCell(null), SPEED - 800);
-
-        return () => {
-            clearTimeout(timer);
-            clearTimeout(hideTimer);
-        };
-    }, [currentStep, gameState]);
-
-
-    const endGame = () => {
-        setGameState("finished");
-        setActiveCell(null);
+    const endBlock = () => {
+        setIsStimulusVisible(false);
+        if (currentBlock < BLOCKS) {
+            setGameState("blockBreak");
+        } else {
+            setGameState("finished");
+        }
     };
 
-    const handleMatchClick = () => {
-        if (gameState !== "playing" || hasClicked) return;
+    const nextBlock = () => {
+        setCurrentBlock(prev => prev + 1);
+        startBlock();
+    };
 
-        setHasClicked(true);
+    const handlePositionMatch = () => {
+        if (gameState !== "playing" || response.positionClicked) return;
 
-        const isMatch = currentStep >= nLevel && sequence[currentStep] === sequence[currentStep - nLevel];
+        setResponse(prev => ({ ...prev, positionClicked: true }));
+
+        const isMatch = currentTrial >= N_FACTOR && positionSeq[currentTrial] === positionSeq[currentTrial - N_FACTOR];
 
         if (isMatch) {
-            setScore(prev => prev + 1);
-            setFeedback("correct");
+            setScore(s => ({ ...s, posHits: s.posHits + 1 }));
+            setFeedback(prev => ({ ...prev, pos: 'correct' }));
         } else {
-            setMistakes(prev => prev + 1);
-            setFeedback("wrong");
+            setScore(s => ({ ...s, posMistakes: s.posMistakes + 1 }));
+            setFeedback(prev => ({ ...prev, pos: 'wrong' }));
         }
+        setTimeout(() => setFeedback(prev => ({ ...prev, pos: null })), 500);
+    };
 
-        setTimeout(() => setFeedback(null), 500);
+    const handleAudioMatch = () => {
+        if (gameState !== "playing" || response.audioClicked) return;
+
+        setResponse(prev => ({ ...prev, audioClicked: true }));
+
+        const isMatch = currentTrial >= N_FACTOR && audioSeq[currentTrial] === audioSeq[currentTrial - N_FACTOR];
+
+        if (isMatch) {
+            setScore(s => ({ ...s, audioHits: s.audioHits + 1 }));
+            setFeedback(prev => ({ ...prev, audio: 'correct' }));
+        } else {
+            setScore(s => ({ ...s, audioMistakes: s.audioMistakes + 1 }));
+            setFeedback(prev => ({ ...prev, audio: 'wrong' }));
+        }
+        setTimeout(() => setFeedback(prev => ({ ...prev, audio: null })), 500);
     };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.code === "Space") {
-                e.preventDefault();
-                handleMatchClick();
-            }
+            if (gameState !== "playing") return;
+            if (e.code === "KeyA") handleAudioMatch();
+            if (e.code === "KeyL") handlePositionMatch();
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [gameState, currentStep, hasClicked]);
+    }, [gameState, currentTrial, response, positionSeq, audioSeq]);
 
+    useEffect(() => {
+        return () => {
+            clearTimeout(cycleTimer.current);
+            clearTimeout(hideTimer.current);
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
 
     return (
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+        <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
 
-            <div className="flex justify-between items-center w-full mb-8 p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
-                <div>
-                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">N-Level</div>
-                    <div className="text-xl font-bold text-white flex items-center gap-2">
-                        <span className="text-emerald-400">{nLevel}-Back</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-8">
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md flex flex-col justify-center items-center">
+                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Block</div>
+                    <div className="text-2xl font-bold text-white">
+                        {gameState === "finished" ? BLOCKS : currentBlock} <span className="text-slate-500">/ {BLOCKS}</span>
                     </div>
                 </div>
 
-                <div className="text-center">
-                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Progress</div>
-                    <div className="text-2xl font-mono font-bold text-white">
-                        {gameState === "playing" ? currentStep + 1 : 0}<span className="text-slate-500 text-lg">/{TOTAL_TURNS}</span>
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md flex flex-col justify-center items-center">
+                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Trial</div>
+                    <div className="text-2xl font-bold text-white">
+                        {gameState === "playing" ? currentTrial + 1 : "-"}<span className="text-slate-500 text-lg"> / {TRIALS}</span>
                     </div>
                 </div>
 
-                <div className="text-right">
-                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Score</div>
-                    <div className="text-xl font-mono font-bold text-white">
-                        {score} <span className="text-red-400 text-sm ml-1">({mistakes})</span>
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md flex flex-col justify-center items-center">
+                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Level</div>
+                    <div className="text-2xl font-bold text-emerald-400">
+                        Dual {N_FACTOR}-Back
                     </div>
                 </div>
             </div>
 
-            <div className="relative p-8 bg-slate-900/50 rounded-3xl border border-white/5 shadow-2xl">
+            <div className="flex flex-col md:flex-row gap-8 items-start w-full">
 
-                <AnimatePresence mode="wait">
+                <div className="relative flex-1 w-full aspect-square max-w-[400px] mx-auto bg-slate-900/50 rounded-3xl border border-white/5 shadow-2xl p-4">
 
-                    {gameState === "idle" && (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-sm rounded-3xl p-6 text-center"
-                        >
-                            <BrainCircuit className="w-16 h-16 text-emerald-400 mb-4" />
-                            <h2 className="text-2xl font-bold text-white mb-6">Configure Difficulty</h2>
-
-                            <div className="flex items-center gap-4 mb-8">
-                                <button
-                                    onClick={() => setNLevel(Math.max(1, nLevel - 1))}
-                                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-                                >-</button>
-                                <div className="text-4xl font-bold text-white w-12">{nLevel}</div>
-                                <button
-                                    onClick={() => setNLevel(Math.min(5, nLevel + 1))}
-                                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-                                >+</button>
-                            </div>
-
-                            <button
-                                onClick={startGame}
-                                className="px-10 py-4 bg-white text-slate-900 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2"
-                            >
-                                <Play className="w-5 h-5 fill-slate-900" />
-                                Start Training
-                            </button>
-                        </motion.div>
-                    )}
-
-                    {gameState === "finished" && (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-sm rounded-3xl p-6 text-center"
-                        >
-                            <Trophy className="w-16 h-16 text-yellow-400 mb-4" />
-                            <h2 className="text-3xl font-bold text-white mb-2">Session Complete</h2>
-                            <p className="text-slate-400 mb-6">{nLevel}-Back Challenge</p>
-
-                            <div className="grid grid-cols-2 gap-4 w-full max-w-xs mb-8">
-                                <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                                    <div className="text-xs text-slate-500 uppercase">Correct</div>
-                                    <div className="text-2xl font-bold text-emerald-400">{score}</div>
-                                </div>
-                                <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                                    <div className="text-xs text-slate-500 uppercase">Mistakes</div>
-                                    <div className="text-2xl font-bold text-red-400">{mistakes}</div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => setGameState("idle")}
-                                className="px-8 py-3 bg-emerald-600 text-white rounded-full font-bold hover:bg-emerald-500 transition-colors"
-                            >
-                                Play Again
-                            </button>
-                        </motion.div>
-                    )}
-
-                </AnimatePresence>
-
-                <div className="grid grid-cols-3 gap-4 mb-8">
-                    {Array.from({ length: 9 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className={cn(
-                                "w-20 h-20 md:w-24 md:h-24 rounded-xl border-2 transition-all duration-300",
-                                activeCell === i
-                                    ? "bg-emerald-500 border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.5)] scale-105"
-                                    : "bg-slate-800 border-white/5 scale-100"
-                            )}
-                        />
-                    ))}
-                </div>
-
-                <div className="flex justify-center">
-                    <button
-                        disabled={gameState !== "playing"}
-                        onClick={handleMatchClick}
-                        className={cn(
-                            "w-full max-w-sm py-6 rounded-2xl font-black text-xl tracking-widest uppercase transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1",
-                            feedback === "correct"
-                                ? "bg-emerald-500 border-emerald-700 text-white"
-                                : feedback === "wrong"
-                                    ? "bg-red-500 border-red-700 text-white"
-                                    : "bg-slate-700 border-slate-900 text-slate-300 hover:bg-slate-600 hover:text-white"
+                    <AnimatePresence>
+                        {gameState === "idle" && (
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 z-20 bg-slate-900/90 backdrop-blur rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                                <BrainCircuit className="w-16 h-16 text-emerald-400 mb-4" />
+                                <h2 className="text-2xl font-bold text-white mb-2">Dual N-Back</h2>
+                                <p className="text-slate-400 text-sm mb-8">Remember Position AND Sound.</p>
+                                <button onClick={startBlock} className="px-8 py-3 bg-white text-slate-900 rounded-full font-bold hover:scale-105 transition-transform flex items-center gap-2">
+                                    <Play className="w-4 h-4 fill-slate-900" /> Start
+                                </button>
+                            </motion.div>
                         )}
-                    >
-                        {feedback === "correct" ? "MATCH!" : feedback === "wrong" ? "WRONG!" : "MATCH"}
-                    </button>
+                        {gameState === "blockBreak" && (
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 z-20 bg-slate-900/90 backdrop-blur rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                                <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+                                <h2 className="text-2xl font-bold text-white mb-2">Block Complete</h2>
+                                <p className="text-slate-400 text-sm mb-8">Take a short breath.</p>
+                                <button onClick={nextBlock} className="px-8 py-3 bg-emerald-500 text-white rounded-full font-bold hover:scale-105 transition-transform">
+                                    Next Block
+                                </button>
+                            </motion.div>
+                        )}
+                        {gameState === "finished" && (
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 z-20 bg-slate-900/90 backdrop-blur rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                                <Trophy className="w-16 h-16 text-yellow-400 mb-4" />
+                                <h2 className="text-2xl font-bold text-white mb-2">Training Complete</h2>
+                                <div className="grid grid-cols-2 gap-4 text-left w-full max-w-xs mb-8 bg-white/5 p-4 rounded-xl">
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase">Pos Hits</div>
+                                        <div className="text-xl font-bold text-emerald-400">{score.posHits}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase">Audio Hits</div>
+                                        <div className="text-xl font-bold text-blue-400">{score.audioHits}</div>
+                                    </div>
+                                </div>
+                                <button onClick={() => window.location.reload()} className="px-8 py-3 bg-slate-700 text-white rounded-full font-bold hover:bg-slate-600 transition-colors">
+                                    Finish
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div className="grid grid-cols-3 gap-3 h-full">
+                        {POSITIONS.map((pos) => (
+                            <div
+                                key={pos}
+                                className={cn(
+                                    "rounded-xl border-2 transition-all duration-150",
+                                    (gameState === "playing" && isStimulusVisible && activePosition === pos)
+                                        ? "bg-emerald-500 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.6)]"
+                                        : "bg-slate-800/50 border-white/5"
+                                )}
+                            />
+                        ))}
+                    </div>
                 </div>
 
-                <AnimatePresence>
-                    {feedback === "missed" && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                            className="absolute top-4 left-0 w-full text-center"
+                <div className="flex-1 w-full max-w-[400px] flex flex-col gap-4">
+
+                    <div className="h-32 bg-slate-900/50 rounded-3xl border border-white/5 flex items-center justify-center mb-4">
+                        {gameState === "playing" && isStimulusVisible ? (
+                            <Volume2 className="w-16 h-16 text-blue-400 animate-pulse" />
+                        ) : (
+                            <Volume2 className="w-16 h-16 text-slate-700" />
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={handlePositionMatch}
+                            className={cn(
+                                "h-32 rounded-2xl flex flex-col items-center justify-center border-b-4 active:border-b-0 active:translate-y-1 transition-all",
+                                feedback.pos === "correct" ? "bg-emerald-500 border-emerald-700 text-white" :
+                                    feedback.pos === "wrong" ? "bg-red-500 border-red-700 text-white" :
+                                        "bg-slate-700 border-slate-900 text-slate-300 hover:bg-slate-600 hover:text-white"
+                            )}
                         >
-                    <span className="px-4 py-2 bg-red-500/90 text-white text-sm font-bold rounded-full shadow-lg">
-                        Missed Match!
-                    </span>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            <Grid3x3 className="w-8 h-8 mb-2" />
+                            <span className="font-bold text-lg">POSITION</span>
+                            <span className="text-xs opacity-60 mt-1">(Press L)</span>
+                        </button>
+
+                        <button
+                            onClick={handleAudioMatch}
+                            className={cn(
+                                "h-32 rounded-2xl flex flex-col items-center justify-center border-b-4 active:border-b-0 active:translate-y-1 transition-all",
+                                feedback.audio === "correct" ? "bg-blue-500 border-blue-700 text-white" :
+                                    feedback.audio === "wrong" ? "bg-red-500 border-red-700 text-white" :
+                                        "bg-slate-700 border-slate-900 text-slate-300 hover:bg-slate-600 hover:text-white"
+                            )}
+                        >
+                            <Volume2 className="w-8 h-8 mb-2" />
+                            <span className="font-bold text-lg">AUDIO</span>
+                            <span className="text-xs opacity-60 mt-1">(Press A)</span>
+                        </button>
+                    </div>
+
+                    <div className="text-center text-slate-500 text-xs mt-2">
+                        Match if stimulus is same as <strong>{N_FACTOR} steps ago</strong>.
+                    </div>
+                </div>
 
             </div>
-
-            <div className="mt-8 text-center max-w-md text-slate-400 text-sm">
-                <p>
-                    Press <strong>MATCH</strong> (or Spacebar) when the current blue square is in the same position as it was <strong>{nLevel} steps ago</strong>.
-                </p>
-            </div>
-
         </div>
     );
 }
