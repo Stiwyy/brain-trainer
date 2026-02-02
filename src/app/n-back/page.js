@@ -8,7 +8,6 @@ import NBackGame from "../components/nback/NBackGame";
 export default function NBackPage() {
     return (
         <main className="min-h-screen bg-[#0B0C15] selection:bg-emerald-500/30 text-white relative pb-20">
-            {/* Background Effects */}
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-50 mix-blend-overlay"></div>
 
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
@@ -38,10 +37,8 @@ export default function NBackPage() {
                     </p>
                 </div>
 
-                {/* The Game Component */}
                 <NBackGame />
 
-                {/* --- IMPROVED EXPLANATION SECTION --- */}
                 <div className="mt-24 max-w-4xl mx-auto">
 
                     <div className="text-center mb-12">
@@ -55,7 +52,6 @@ export default function NBackPage() {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8 mb-12">
-                        {/* Visual Explanation */}
                         <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
                             <div className="flex items-center gap-3 mb-4 text-emerald-400">
                                 <Eye className="w-6 h-6" />
@@ -77,7 +73,6 @@ export default function NBackPage() {
                             </div>
                         </div>
 
-                        {/* Audio Explanation */}
                         <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm">
                             <div className="flex items-center gap-3 mb-4 text-blue-400">
                                 <Volume2 className="w-6 h-6" />
@@ -100,7 +95,6 @@ export default function NBackPage() {
                         </div>
                     </div>
 
-                    {/* Controls Footer */}
                     <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-white/5 rounded-xl">
