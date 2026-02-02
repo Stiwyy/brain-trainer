@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Brain Trainer
 
-## Getting Started
+**Elevate your cognitive performance with a suite of classic neuropsychological training tasks.**
 
-First, run the development server:
+Brain Trainer is a web application built with Next.js designed to sharpen your focus, memory, and reaction speeds. Whether you are looking to improve your working memory or simply warm up your brain for the day, this platform offers a variety challenges.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+This application features five distinct modules, each targeting a specific area of cognitive function:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Schulte Table
 
-## Learn More
+**Target:** Peripheral vision, speed reading, and visual search speed.
 
-To learn more about Next.js, take a look at the following resources:
+* **How it works:** Find numbers in ascending order as quickly as possible within a **n**x**n** grid.
+* **Benefit:** Improves information processing speed and flow state.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Stroop Test
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Target:** Cognitive flexibility, selective attention, and processing speed.
 
-## Deploy on Vercel
+* **How it works:** You are shown a color name printed in a different ink color. You must identify the **ink color**, ignoring the text.
+* **Benefit:** strengthens your brain's ability to inhibit cognitive interference (the "Stroop Effect").
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Reaction Time Tests
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Target:** Reflexes and central nervous system processing.
+
+* **How it works:** A simple visual stimulus appears on the screen. Click or tap as instantly as possible.
+* **Benefit:** Measures and improves your raw physical reaction speed.
+
+### 4. N-Back Task
+
+**Target:** Fluid intelligence and working memory.
+
+* **How it works:** You are presented with a sequence of stimuli. You must decide if the current stimulus is the same as the one presented *N* steps earlier in the sequence.
+* **Benefit:** Widely considered one of the most effective methods for increasing working memory capacity.
+
+### 5. Mental Arithmetic
+
+**Target:** Numerical fluency and mental calculation speed.
+
+* **How it works:** Solve rapid-fire math problems against the clock.
+* **Benefit:** Keeps the brain active and improves quantitative reasoning skills under pressure.
+
+---
+
+## Tech Stack
+
+* **Framework:** [Next.js](https://nextjs.org/)
+* **UI Library:** React
+* **Styling:** Tailwind CSS
+* **State Management:** React Hooks
+
+----
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
