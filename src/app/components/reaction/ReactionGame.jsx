@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, RotateCcw, Play, History, MousePointer2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export default function ReactionGame() {
     const [gameState, setGameState] = useState("idle");
