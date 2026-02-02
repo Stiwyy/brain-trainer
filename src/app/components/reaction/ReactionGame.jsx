@@ -27,6 +27,7 @@ export default function ReactionGame() {
         if (boardRef.current) {
             boardRef.current.style.backgroundColor = COLORS.waiting;
             boardRef.current.style.cursor = "wait";
+            boardRef.current.dataset.status = "waiting";
         }
 
         const delay = Math.floor(Math.random() * 3000) + 2000;
@@ -36,8 +37,11 @@ export default function ReactionGame() {
                 if (boardRef.current) {
                     boardRef.current.style.backgroundColor = COLORS.ready;
                     boardRef.current.style.cursor = "pointer";
-                    startTimeRef.current = performance.now();
+
                     boardRef.current.dataset.status = "ready";
+                    startTimeRef.current = performance.now();
+
+                    setGameState("ready");
                 }
             });
         }, delay);
@@ -47,17 +51,7 @@ export default function ReactionGame() {
         const clickTime = performance.now();
         const currentStatus = boardRef.current?.dataset.status;
 
-        if (gameState === "waiting") {
-            clearTimeout(timeoutRef.current);
-            setGameState("early");
-            if (boardRef.current) {
-                boardRef.current.style.backgroundColor = COLORS.early;
-                boardRef.current.dataset.status = "idle";
-            }
-            return;
-        }
-
-        if (gameState === "ready" && currentStatus === "ready") {
+        if (currentStatus === "ready") {
             const timeDiff = clickTime - startTimeRef.current;
             const finalTime = Math.max(0, Math.round(timeDiff));
 
@@ -67,6 +61,16 @@ export default function ReactionGame() {
 
             if (boardRef.current) {
                 boardRef.current.style.backgroundColor = COLORS.idle;
+                boardRef.current.dataset.status = "idle";
+            }
+            return;
+        }
+
+        if (gameState === "waiting" || currentStatus === "waiting") {
+            clearTimeout(timeoutRef.current);
+            setGameState("early");
+            if (boardRef.current) {
+                boardRef.current.style.backgroundColor = COLORS.early;
                 boardRef.current.dataset.status = "idle";
             }
             return;
@@ -157,6 +161,13 @@ export default function ReactionGame() {
                     {gameState === "waiting" && (
                         <div className="text-center animate-pulse">
                             <span className="text-8xl font-black text-white/50">...</span>
+                        </div>
+                    )}
+
+                    {gameState === "ready" && (
+                        <div className="text-center">
+                            <MousePointer2 className="w-24 h-24 text-white mb-4 drop-shadow-md mx-auto" />
+                            <h2 className="text-6xl font-black text-white uppercase tracking-tighter drop-shadow-md">CLICK!</h2>
                         </div>
                     )}
 
