@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Play, Trophy, CheckCircle2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 const GRID_SIZES = [
     { size: 3, label: "3x3", difficulty: "Easy" },
