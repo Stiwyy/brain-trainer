@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import ReactionGame from "../components/reaction/ReactionGame";
 
 export default function ReactionPage() {
@@ -38,6 +38,15 @@ export default function ReactionPage() {
 
                 <ReactionGame />
 
+                <div className="mt-8 max-w-2xl mx-auto flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/5 text-slate-400 text-sm">
+                    <Info className="w-5 h-5 flex-shrink-0 text-amber-500/50 mt-0.5" />
+                    <div className="space-y-1">
+                        <p className="font-semibold text-slate-300">Why is my score higher than expected?</p>
+                        <p>
+                            This test measures the <strong>total system latency</strong>. This includes your own reaction time + your monitor's input lag (10-40ms) + browser rendering time.
+                        </p>
+                    </div>
+                </div>
             </div>
         </main>
     );
