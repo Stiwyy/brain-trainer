@@ -16,26 +16,30 @@ export default function GameCard({ game }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: game.delay, duration: 0.5 }}
-                className="relative h-full p-8 rounded-3xl bg-slate-900/50 border border-white/5 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-slate-800/50 hover:-translate-y-1"
+                className="relative h-full p-6 sm:p-8 rounded-3xl bg-slate-900/50 border border-white/5 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-white/10 hover:bg-slate-800/50 hover:-translate-y-1"
             >
-                <div className={cn(
-                    "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br",
-                    game.color
-                )} />
+                <div
+                    className={cn(
+                        "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br",
+                        game.color
+                    )}
+                />
 
                 <div className="relative z-10 flex flex-col h-full">
-                    <div className={cn(
-                        "w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br shadow-lg",
-                        game.color
-                    )}>
-                        <Icon className="w-7 h-7 text-white" />
+                    <div
+                        className={cn(
+                            "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-5 sm:mb-6 bg-gradient-to-br shadow-lg",
+                            game.color
+                        )}
+                    >
+                        <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-400 transition-colors">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-400 transition-colors">
                         {game.title}
                     </h3>
 
-                    <p className="text-slate-400 leading-relaxed mb-8 flex-grow">
+                    <p className="text-slate-400 leading-relaxed mb-6 sm:mb-8 flex-grow text-sm sm:text-base">
                         {game.description}
                     </p>
 

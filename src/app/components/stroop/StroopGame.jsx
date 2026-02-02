@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, RotateCcw, Trophy, CheckCircle2, XCircle } from "lucide-react";
+import { Play, RotateCcw, Trophy, CheckCircle2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 const COLORS = [
@@ -32,7 +32,7 @@ export default function StroopGame() {
         return {
             word: COLORS[wordIndex].name,
             inkColor: COLORS[colorIndex].hex,
-            inkName: COLORS[colorIndex].name
+            inkName: COLORS[colorIndex].name,
         };
     };
 
@@ -68,7 +68,7 @@ export default function StroopGame() {
             setScore((prev) => Math.max(0, prev - 1));
             triggerFeedback("wrong");
         }
-    setCurrentChallenge(generateChallenge());
+        setCurrentChallenge(generateChallenge());
     };
 
     const triggerFeedback = (type) => {
@@ -81,23 +81,29 @@ export default function StroopGame() {
     }, []);
 
     return (
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-
-            <div className="flex justify-between items-center w-full mb-8 p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
+        <div className="w-full max-w-4xl mx-auto flex flex-col items-center px-4 pb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full mb-8 p-5 sm:p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md gap-4">
                 <div>
-                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Score</div>
-                    <div className="text-3xl font-bold text-white flex items-center gap-2">
+                    <div className="text-slate-400 text-[11px] sm:text-xs uppercase tracking-wider font-semibold mb-1">
+                        Score
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
                         <span className="text-emerald-400">{score}</span>
                     </div>
                 </div>
 
-                <div className="text-center">
-                    <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Time Left</div>
-                    <div className={cn(
-                        "text-4xl font-mono font-bold w-32 transition-colors",
-                        timeLeft <= 5 ? "text-red-500 animate-pulse" : "text-white"
-                    )}>
-                        {timeLeft}<span className="text-sm text-slate-500">s</span>
+                <div className="text-left sm:text-center">
+                    <div className="text-slate-400 text-[11px] sm:text-xs uppercase tracking-wider font-semibold mb-1">
+                        Time Left
+                    </div>
+                    <div
+                        className={cn(
+                            "text-3xl sm:text-4xl font-mono font-bold w-24 sm:w-32 transition-colors",
+                            timeLeft <= 5 ? "text-red-500 animate-pulse" : "text-white"
+                        )}
+                    >
+                        {timeLeft}
+                        <span className="text-xs sm:text-sm text-slate-500">s</span>
                     </div>
                 </div>
 
@@ -114,32 +120,32 @@ export default function StroopGame() {
                 </div>
             </div>
 
-            <div className="relative w-full aspect-[4/3] md:aspect-[16/9] bg-slate-900/50 rounded-3xl border border-white/5 shadow-2xl overflow-hidden flex flex-col">
-
-                <div className={cn(
-                    "absolute inset-0 z-10 pointer-events-none transition-opacity duration-200",
-                    feedback === "correct" ? "bg-emerald-500/10 opacity-100" : "opacity-0",
-                    feedback === "wrong" ? "bg-red-500/10 opacity-100" : ""
-                )} />
+            <div className="relative w-full max-w-4xl mx-auto aspect-[3/4] sm:aspect-[4/3] lg:aspect-[16/9] bg-slate-900/50 rounded-3xl border border-white/5 shadow-2xl overflow-hidden flex flex-col">
+                <div
+                    className={cn(
+                        "absolute inset-0 z-10 pointer-events-none transition-opacity duration-200",
+                        feedback === "correct" ? "bg-emerald-500/10 opacity-100" : "opacity-0",
+                        feedback === "wrong" ? "bg-red-500/10 opacity-100" : ""
+                    )}
+                />
 
                 <AnimatePresence mode="wait">
-
                     {gameState === "idle" && (
                         <motion.div
                             key="start"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm p-8 text-center"
+                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm p-6 sm:p-8 text-center"
                         >
-                            <h2 className="text-3xl font-bold text-white mb-4">Stroop Effect Test</h2>
-                            <p className="text-slate-400 mb-8 max-w-md">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">Stroop Effect Test</h2>
+                            <p className="text-slate-400 mb-6 sm:mb-8 max-w-md text-sm sm:text-base">
                                 Click the button that matches the <strong className="text-white">INK COLOR</strong> of the word shown. Ignore what the word actually says.
                             </p>
 
                             <button
                                 onClick={startGame}
-                                className="group px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                className="group px-8 sm:px-10 py-3 sm:py-4 bg-white text-slate-900 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                             >
                                 <Play className="w-5 h-5 fill-slate-900" />
                                 Start Test
@@ -152,18 +158,20 @@ export default function StroopGame() {
                             key="won"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md p-8 text-center"
+                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md p-6 sm:p-8 text-center"
                         >
-                            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
-                                <Trophy className="w-10 h-10 text-emerald-400" />
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-5 sm:mb-6">
+                                <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" />
                             </div>
 
-                            <h2 className="text-4xl font-bold text-white mb-2">Time's Up!</h2>
-                            <p className="text-slate-400 mb-8">Test Completed</p>
+                            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2">Time's Up!</h2>
+                            <p className="text-slate-400 mb-6 sm:mb-8">Test Completed</p>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 mb-10 min-w-[200px]">
-                                <div className="text-slate-500 text-xs uppercase font-bold mb-1">Final Score</div>
-                                <div className="text-5xl font-mono font-bold text-white">{score}</div>
+                            <div className="bg-white/5 p-5 sm:p-6 rounded-2xl border border-white/10 mb-8 sm:mb-10 min-w-[200px]">
+                                <div className="text-slate-500 text-[11px] sm:text-xs uppercase font-bold mb-1">
+                                    Final Score
+                                </div>
+                                <div className="text-4xl sm:text-5xl font-mono font-bold text-white">{score}</div>
                             </div>
 
                             <button
@@ -176,13 +184,13 @@ export default function StroopGame() {
                     )}
                 </AnimatePresence>
 
-                <div className="flex-1 flex flex-col items-center justify-center p-8">
+                <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8">
                     {currentChallenge && (
                         <motion.div
                             key={score}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="text-7xl md:text-8xl font-black tracking-tight mb-12 select-none"
+                            className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight mb-8 sm:mb-12 select-none text-center break-words"
                             style={{ color: currentChallenge.inkColor }}
                         >
                             {currentChallenge.word}
@@ -190,33 +198,32 @@ export default function StroopGame() {
                     )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 p-4 bg-slate-800/50 border-t border-white/5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 bg-slate-800/50 border-top border-white/5">
                     {COLORS.map((color) => (
                         <button
                             key={color.name}
                             onClick={() => handleAnswer(color.name)}
                             disabled={gameState !== "playing"}
-                            className="h-16 rounded-xl font-bold text-white/90 text-sm md:text-base tracking-wide transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                            className="h-14 sm:h-16 rounded-xl font-bold text-white/90 text-sm md:text-base tracking-wide transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                             style={{ backgroundColor: color.hex }}
                         >
                             {color.name}
                         </button>
                     ))}
                 </div>
-
             </div>
 
-            <div className="mt-8 text-center max-w-md">
+            <div className="mt-8 text-center max-w-md px-4">
                 <h3 className="text-white font-semibold mb-2 flex items-center justify-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-purple-400" />
                     Instructions
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                    Your brain wants to read the word. <strong>Don't let it.</strong> <br/>
+                    Your brain wants to read the word. <strong>Don't let it.</strong>
+                    <br />
                     Look at the color of the text and press the matching button below.
                 </p>
             </div>
-
         </div>
     );
 }

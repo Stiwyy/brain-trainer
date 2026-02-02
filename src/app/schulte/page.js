@@ -16,8 +16,7 @@ export default function SchultePage() {
             </div>
 
             <div className="container mx-auto px-4 py-8">
-
-                <nav className="flex items-center mb-12">
+                <nav className="flex items-center mb-10 sm:mb-12">
                     <Link
                         href="/"
                         className="flex items-center text-slate-400 hover:text-white transition-colors group"
@@ -27,17 +26,16 @@ export default function SchultePage() {
                     </Link>
                 </nav>
 
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+                <div className="text-center mb-10 sm:mb-12 px-2">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
                         Schulte Table
                     </h1>
-                    <p className="text-slate-400 max-w-xl mx-auto">
+                    <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
                         Train your visual attention and peripheral vision by finding numbers in ascending order.
                     </p>
                 </div>
 
                 <SchulteGame />
-
             </div>
         </main>
     );
